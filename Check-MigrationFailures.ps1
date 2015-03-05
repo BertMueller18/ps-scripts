@@ -22,6 +22,9 @@
 	Author:			Jared McArthur
 	Creation Date:	3/5/2015
 	Purpose/Change:	Initial script development
+	GitHub:		https://github.com/ascensionra
+	Twitter:	https://twitter.com/redtailnetworks
+
 #>
 
 param([switch]$noecho, [switch]$noexport, [string[]]$path, [switch]$simulate)
