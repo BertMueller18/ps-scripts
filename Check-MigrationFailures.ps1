@@ -183,7 +183,7 @@ function main
     }
 
     write-host -foregroundcolor White "`n**** Finished, press any key to exit."
-    #$x = $host.ui.rawui.ReadKey("NoEcho,IncludeKeyDown")
+    $x = $host.ui.rawui.ReadKey("NoEcho,IncludeKeyDown")
 }
 
 main
