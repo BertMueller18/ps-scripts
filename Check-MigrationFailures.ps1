@@ -30,6 +30,51 @@
 param([switch]$noecho, [switch]$noexport, [string[]]$path, [switch]$simulate)
 
 $filename = $null
+$Session = $null
+$LiveCred = $null
+
+function connect365
+{
+    if (-not $simulate -and -not $Session) 
+    {
+	    $LiveCred = Get-Credential
+    }
+
+    if (-not $simulate)
+    {
+	    write-host -foregroundcolor White "Attempting to establish session with provided credentials."
+        
+	    do
+	    {
+		    try
+		    {
+                $Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://ps.outlook.com/powershell/ -Credential $LiveCred -Authentication Basic -AllowRedirection -ErrorAction STOP
+                $stopLoop = $true
+            }
+            catch
+		    {
+			    if ($retry -eq 3)
+			    {
+				    write-host -foregroundcolor Red "3 login failures. Exiting."
+                    return
+				    #exit
+			    }
+			    else
+			    {
+				    write-host -ForegroundColor Yellow "Bad credentials"
+				    $retry++
+				    $LiveCred = Get-Credential
+			    }
+		    }
+	    } while ($stopLoop -eq $false)
+
+        Import-PSSession $Session -AllowClobber
+    }
+    elseif (-not $simulate)
+    { 
+	    write-host -foregroundcolor Yellow "`$Session already exists"
+    }
+}
 
 Function printResults
 {
@@ -40,8 +85,11 @@ Function printResults
 Function exportResults
 {
     write-host -ForegroundColor Red "Found" $failures.count "failed users/mailboxes"
-    write-host "In exportResults, using $filename"
-    $failures | Export-Csv $filename
+    
+    if (-not $simulate)
+    {
+        $failures | Export-Csv $filename
+    }
 }
 
 Function generateOutFilename($path)
@@ -105,56 +153,32 @@ Function testFlags
 function main
 {
     $filename = generateOutFilename
+
+    if (Test-Path "D:\Users\Jared\Documents\git\ps-scripts\SecureCreds.xml")
+    {
+        write-host -ForegroundColor Green "`nImporting existing credentials"
+        $LiveCred = Import-Clixml "D:\Users\Jared\Documents\git\ps-scripts\SecureCreds.xml"
+    }
     
     testFlags
 
+<# Debug block
     if ($filename -ne $null -and $simulate)
     {
         write-host "Again, using $filename"
     }
-
+#>
     $stopLoop = $false
     [int]$retry = "0"
 
-
-    if ($LiveCred -eq $null -and -not $simulate) 
+    if ($LiveCred -eq $null)
     {
-	    $LiveCred = Get-Credential
+        write-host -ForegroundColor White "`nConnecting to 365"
+        connect365
     }
-
-    if ($Session -eq $null -and -not $simulate)
+    else
     {
-	    write-host -foregroundcolor White "Attempting to establish session with provided credentials."
-        
-	    do
-	    {
-		    try
-		    {
-                $Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://ps.outlook.com/powershell/ -Credential $LiveCred -Authentication Basic -AllowRedirection -ErrorAction STOP
-                $stopLoop = $true
-            }
-            catch
-		    {
-			    if ($retry -eq 3)
-			    {
-				    write-host -foregroundcolor Red "3 login failures. Exiting."
-                    return
-				    #exit
-			    }
-			    else
-			    {
-				    write-host -ForegroundColor Yellow "Bad credentials"
-				    $retry++
-				    $LiveCred = Get-Credential
-			    }
-		    }
-	    } while ($stopLoop -eq $false)
-
-        Import-PSSession $Session -AllowClobber
-    }
-    elseif (-not $simulate)
-    { 
-	    write-host -foregroundcolor Yellow "`$Session already exists"
+        write-host -ForegroundColor Magenta "`nSession already exists, continuing"
     }
 
     write-host -foregroundcolor White "`nConnecting to MSOL"
@@ -172,7 +196,7 @@ function main
     }
     else
     {
-        $failures = "1"
+        $failures = 1
     }
 
     if ($failures -ne $null)
