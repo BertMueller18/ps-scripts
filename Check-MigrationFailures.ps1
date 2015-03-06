@@ -29,6 +29,8 @@
 
 param([switch]$noecho, [switch]$noexport, [string[]]$path, [switch]$simulate)
 
+$filename = $null
+
 Function printResults
 {
     $failures | more
@@ -38,6 +40,7 @@ Function printResults
 Function exportResults
 {
     write-host -ForegroundColor Red "Found" $failures.count "failed users/mailboxes"
+    write-host "In exportResults, using $filename"
     $failures | Export-Csv $filename
 }
 
@@ -88,7 +91,7 @@ Function testFlags
         }
         else
         {
-            $filename = generateOutFilename($path) 
+            #$filename = generateOutFilename($path) 
             Write-host -ForegroundColor Yellow "`nExporting csv to" $filename
         }
     }
@@ -96,11 +99,20 @@ Function testFlags
     {
         write-host -ForegroundColor Yellow "`nUsing current directory" (Get-Item -path ".\" -verbose).FullName
     }
+    #return $filename
 }
 
 function main
 {
+    $filename = generateOutFilename
+    
     testFlags
+
+    if ($filename -ne $null -and $simulate)
+    {
+        write-host "Again, using $filename"
+    }
+
     $stopLoop = $false
     [int]$retry = "0"
 
@@ -140,9 +152,9 @@ function main
 
         Import-PSSession $Session -AllowClobber
     }
-    else
+    elseif (-not $simulate)
     { 
-	    write-host -foregroundcolor Yellow "\$Session already exists"
+	    write-host -foregroundcolor Yellow "`$Session already exists"
     }
 
     write-host -foregroundcolor White "`nConnecting to MSOL"
@@ -160,7 +172,7 @@ function main
     }
     else
     {
-        $failures = $null
+        $failures = "1"
     }
 
     if ($failures -ne $null)
