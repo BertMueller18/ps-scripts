@@ -58,12 +58,29 @@ $sLogName = "<script_name>.log"
 $sLogFile = Join-Path -Path $sLogPath -ChildPath $sLogName
 
 #-----------------------------------------------------------[Functions]------------------------------------------------------------
+Param
+(
+    [Parameter(Mandatory=$true)][string[]]$to,
+    [Parameter(Mandatory=$true)][string[]]$from,
+    [Parameter(Mandatory=$true)][string[]]$smtp,
+    [Parameter(Mandatory=$false)][switch]$promptcreds,
+    [Parameter(Mandatory=$false)][string[]]$smtpuser,
+    [Parameter(Mandatory=$false)][string[]]$smtppwd,
+    [Parameter(Mandatory=$false)][switch]$debug
+)
 
-<#
+# Define this to be the path where you store your exported clixml credentials
+$CredPath = $null
+
+Funtion getCreds
+{
+    Write-Output "$(get-date) : Asking for Office365 Administrative Credentials." 
+    $UserCredential = Get-Credential
+    return $UserCredential
+}
 
 Function Send-O365MailStats
 {
-  Param([string[]]$to,[string[]]$from,[string[]]$smtp,[switch]$promptcreds,[string[]]$smtpuser,[string[]]$smtppwd,[switch]$debug)
   
   Begin
   {
@@ -74,9 +91,12 @@ Function Send-O365MailStats
     Try
     {
         Write-Output "$(get-date) : Script Start."
-            
-        Write-Output "$(get-date) : Asking for Office365 Administrative Credentials." 
-        $UserCredential = Get-Credential 
+           
+        if (-not (Test-Path -Path $CredPath))
+        {
+            $UserCredential = getCreds
+        }
+         
         Write-Output "$(get-date) : Creating an Online PS Session with Office 365." 
         $ouSession = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid/ -Credential $UserCredential -Authentication Basic -AllowRedirection -ErrorAction 'Stop' -ErrorVariable 'ConnectionError' 
         Write-Output "$(get-date) : Importing PS Session." 
@@ -227,21 +247,28 @@ Function Send-O365MailStats
 
         }
     }
-  
+
   End
   {
+  <#
     If($?)
     {
       Log-Write -LogPath $sLogFile -LineValue "Completed Successfully."
       Log-Write -LogPath $sLogFile -LineValue " "
     }
+   #>
   }
 }
 
-#>
+Funtion main
+{
+    Send-O365MailStats
+}
+
+
 
 #-----------------------------------------------------------[Execution]------------------------------------------------------------
 
 #Log-Start -LogPath $sLogPath -LogName $sLogName -ScriptVersion $sScriptVersion
-#Script Execution goes here
+main
 #Log-Finish -LogPath $sLogFile
