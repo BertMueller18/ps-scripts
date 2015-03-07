@@ -152,7 +152,7 @@ Function testFlags
 
 function main
 {
-    $filename = generateOutFilename
+    $filename = generateOutFilename($path)
 
     if (Test-Path "D:\Users\Jared\Documents\git\ps-scripts\SecureCreds.xml")
     {
