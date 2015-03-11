@@ -1,0 +1,73 @@
+Function Send-Email{
+  <#
+  .SYNOPSIS
+    Used to send data as an email to a list of addresses
+
+  .DESCRIPTION
+    This function is used to send an email to a list of addresses. The body can be provided in HTML or plain-text
+  
+  .PARAMETER EmailFrom
+    Mandatory. The email addresses of who you want to send the email from. Example: "admin@9to5IT.com"
+
+  .PARAMETER EmailTo
+    Mandatory. The email addresses of where to send the email to. Seperate multiple emails by ",". Example: "admin@9to5IT.com, test@test.com"
+  
+  .PARAMETER EmailSubject
+    Mandatory. The subject of the email you want to send. Example: "Cool Script - [" + (Get-Date).ToShortDateString() + "]"
+
+  .PARAMETER EmailBody
+    Mandatory. The body of the email in plain-text or HTML format."
+
+  .PARAMETER EmailHTML
+    Mandatory. Boolean. True = email in HTML format (therefore body must be in HTML code). False = email in plain-text format"
+  
+  .INPUTS
+    None - other than parameters above
+
+  .OUTPUTS
+    Email sent to the list of addresses specified
+
+  .NOTES
+    Version:        1.0
+    Author:         Luca Sturlese
+    Creation Date:  18/09/14
+    Purpose/Change: Initial function development
+      
+  .EXAMPLE
+    Send-Email -EmailFrom "admin@9to5IT.com" -EmailTo "admin@9to5IT.com, test@test.com" -EmailSubject "Cool Script - [" + (Get-Date).ToShortDateString() + "]" -EmailBody $sHTMLBody -EmailHTML $True
+
+  .EXAMPLE
+    Send-Email -EmailFrom "admin@9to5IT.com" -EmailTo "admin@9to5IT.com, test@test.com" -EmailSubject "Cool Script - [" + (Get-Date).ToShortDateString() + "]" -EmailBody "This is a test" -EmailHTML $False
+  #>
+    
+  [CmdletBinding()]
+  
+  Param ([Parameter(Mandatory=$true)][string]$EmailFrom, [Parameter(Mandatory=$true)][string]$EmailTo, [Parameter(Mandatory=$true)][string]$EmailSubject, [Parameter(Mandatory=$true)][string]$EmailBody, [Parameter(Mandatory=$true)][boolean]$EmailHTML)
+  
+  Begin{}
+  
+  Process{
+    Try{
+      #SMTP Settings
+      $sSMTPServer = "Set your SMTP Server here"
+
+      #Create Embedded HTML Email Message
+      $oMessage = New-Object System.Net.Mail.MailMessage $EmailFrom, $EmailTo
+      $oMessage.Subject = $EmailSubject
+      $oMessage.IsBodyHtml = $EmailHTML
+      $oMessage.Body = $EmailBody
+            
+      #Create SMTP object and send email
+      $oSMTP = New-Object Net.Mail.SmtpClient($sSMTPServer)
+      $oSMTP.Send($oMessage)
+
+      Exit 0
+    }
+    
+    Catch{
+      Exit 1
+    }
+  }
+  
+  End{}
+  }
