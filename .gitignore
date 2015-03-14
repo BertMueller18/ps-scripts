@@ -1,2 +1,5 @@
 # Credential files
 .xml
+
+# Log files
+.log

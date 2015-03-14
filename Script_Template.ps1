@@ -1,7 +1,6 @@
-#requires -version 2
 <#
 .SYNOPSIS
-  <Overview of script>
+  Locates unlicensed users that have an existing mailbox. Useful for hybrid mirgations. 
 
 .DESCRIPTION
   <Brief description of script>
@@ -10,15 +9,15 @@
     <Brief description of parameter input required. Repeat this attribute if required>
 
 .INPUTS
-  <Inputs if any, otherwise state None>
+  None
 
 .OUTPUTS
-  <Outputs if any, otherwise state None - example: Log file stored in C:\Windows\Temp\<name>.log>
+  mailnolicense.csv
 
 .NOTES
   Version:        1.0
-  Author:         <Name>
-  Creation Date:  <Date>
+  Author:         Jared McArthur
+  Creation Date:  14/03/2015
   Purpose/Change: Initial script development
   
 .EXAMPLE
