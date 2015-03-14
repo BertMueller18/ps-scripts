@@ -1,28 +1,31 @@
 <#
 .SYNOPSIS
-  Locates unlicensed users that have an existing mailbox. Useful for hybrid mirgations. 
+  <Overview of script>
 
 .DESCRIPTION
   <Brief description of script>
 
 .PARAMETER <Parameter_Name>
-    <Brief description of parameter input required. Repeat this attribute if required>
+  <Brief description of parameter input required. Repeat this attribute if required>
 
 .INPUTS
-  None
+  <Inputs if any, otherwise state None>
 
 .OUTPUTS
-  mailnolicense.csv
+  <Outputs if any, otherwise state None - example: Log file stored in C:\Windows\Temp\<name>.log>
 
 .NOTES
   Version:        1.0
-  Author:         Jared McArthur
-  Creation Date:  14/03/2015
+  Author:         <Name>
+  Creation Date:  <Date>
   Purpose/Change: Initial script development
   
 .EXAMPLE
   <Example goes here. Repeat this attribute for more than one example>
 #>
+
+#-------------------------------------------------------=[Global Parameters]-------------------------------------------------------
+Param()
 
 #---------------------------------------------------------[Initialisations]--------------------------------------------------------
 
