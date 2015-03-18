@@ -1,7 +1,7 @@
 #requires -version 2
 <#
 .SYNOPSIS
-  <Overview of script>
+  Locates unlicensed users that have an existing mailbox. Useful for hybrid mirgations. 
 
 .DESCRIPTION
   <Brief description of script>
@@ -10,15 +10,15 @@
     Required parameter. Domain in which to search for users and mailboxes.
 
 .INPUTS
-  <Inputs if any, otherwise state None>
+  Parameters above
 
 .OUTPUTS
-  <Outputs if any, otherwise state None - example: Log file stored in C:\Windows\Temp\<name>.log>
+  Returns SPLATed set of user objects and primary smtp addresses.
 
 .NOTES
   Version:        1.0
-  Author:         <Name>
-  Creation Date:  <Date>
+  Author:         Jared McArthur
+  Creation Date:  14/03/2015
   Purpose/Change: Initial script development
   
 .EXAMPLE
@@ -34,6 +34,7 @@ Param([Parameter(Mandatory=$true)][string]$domain)
 
 #Dot Source required Function Libraries
 . ".\Logging_Functions.ps1"
+#. ".\Connect_Functions.ps1"
 
 #----------------------------------------------------------[Declarations]----------------------------------------------------------
 
@@ -56,8 +57,10 @@ Function GetUnlicensed{
   
   Process{
     Try{
-      $users = @( get-msoluser -all | ? { !$_.isLicensed -and $_.UserPrincipalName -like "*$domain*" } | select ProxyAddresses )
-      #return $users
+      $users = get-msoluser -all | ? { !$_.isLicensed -and $_.UserPrincipalName -like "*$domain*" }
+      #return @($users | % { foreach ( $i in 0..($_.count-1) ) { get-mailbox -Identity $_[$i].userprincipalname.split('@')[0] | ? {$_.primarysmtpaddress -like "*@safeplace.org" } } })
+      
+      return $users
     }
     
     Catch{
@@ -68,7 +71,7 @@ Function GetUnlicensed{
   
   End{
     If($?){
-      Log-Write -LogPath $sLogFile -LineValue "Completed Successfully."
+      Log-Write -LogPath $sLogFile -LineValue "  GetUnlicensed Completed Successfully."
       Log-Write -LogPath $sLogFile -LineValue " "
     }
   }
@@ -83,7 +86,7 @@ Function GetPrimarySMTP{
   
   Process{
     Try{
-      $smtp = @($users | % { $_.proxyAddresses | % { if ( $_.startswith("SMTP") ) { $_.substring(5)} } })
+      $smtp = @($users | % { $_ | % { if ( $_.startswith("SMTP") ) { $_.substring(5)} } })
     }
     
     Catch{
@@ -94,7 +97,40 @@ Function GetPrimarySMTP{
   
   End{
     If($?){
-      Log-Write -LogPath $sLogFile -LineValue "Completed Successfully."
+      Log-Write -LogPath $sLogFile -LineValue "  GetPrimarySMTP Completed Successfully."
+      Log-Write -LogPath $sLogFile -LineValue " "
+    }
+  }
+}
+
+Function Main{
+  Param(
+    [Parameter(Mandatory=$true)][string]$domain
+  )
+  
+  Begin{
+    Log-Write -LogPath $sLogFile -LineValue "Begin query on $domain"
+  }
+  
+  Process{
+    Try{
+      $users = GetUnlicensed $domain
+      $smtp =  GetPrimarySMTP $users.proxyaddresses
+      return @{
+        users = $users
+        smtp = $smtp
+      }
+    }
+    
+    Catch{
+      Log-Error -LogPath $sLogFile -ErrorDesc $_.Exception -ExitGracefully $True
+      Break
+    }
+  }
+  
+  End{
+    If($?){
+      Log-Write -LogPath $sLogFile -LineValue "Main Completed Successfully."
       Log-Write -LogPath $sLogFile -LineValue " "
     }
   }
@@ -102,6 +138,8 @@ Function GetPrimarySMTP{
 
 #-----------------------------------------------------------[Execution]------------------------------------------------------------
 
-Log-Start -LogPath $sLogPath -LogName $sLogName -ScriptVersion $sScriptVersion
-return getprimarysmtp(GetUnlicensed($domain))
-Log-Finish -LogPath $sLogFile
+#Log-Start -LogPath $sLogPath -LogName $sLogName -ScriptVersion $sScriptVersion
+
+#main $domain
+
+#Log-Finish -LogPath $sLogFile

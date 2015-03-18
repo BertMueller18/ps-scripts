@@ -70,7 +70,7 @@ Param
 )
 
 # Define this to be the path where you store your exported clixml credentials
-$CredPath = $null
+$CredPath = ".\SecureCreds.xml"
 
 Funtion getCreds
 {
@@ -121,10 +121,11 @@ Function Send-O365MailStats
             #$mailcred = Get-Credential
 
             #Your SMTP sever 
-            $smtp = 'smtp.office365.com' 
+            #$smtp = 'smtp.office365.com'
+            $smtp = $SMTPServer
         
             # To E-Mail Address
-            $Emailto = 'jared@teamventi.com'
+            $Emailto = 'jared@macitconsulting.com'
         
             # From E-Mail Address 
             $Emailfrom = 'jared@teamventi.com' 
